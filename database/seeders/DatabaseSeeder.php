@@ -15,11 +15,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create Categories
+        $categories = \App\Models\Category::factory(5)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Create Suppliers
+        $suppliers = \App\Models\Supplier::factory(5)->create();
+
+        // Create Racks
+        $racks = \App\Models\Rack::factory(5)->create();
+
+        // Create Customers
+        $customers = \App\Models\Customer::factory(5)->create();
+
+        // Create Vehicles
+        \App\Models\Vehicle::factory(10)->recycle($customers)->create();
+
+        // Create Products
+        \App\Models\Product::factory(100)
+            ->recycle($categories)
+            ->recycle($suppliers)
+            ->recycle($racks)
+            ->create();
     }
 }
