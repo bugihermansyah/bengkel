@@ -18,33 +18,44 @@
             this.isFullscreen = false;
         }
     }
-}" 
-x-init="updateTime(); setInterval(() => updateTime(), 1000)">
+}" x-init="updateTime(); setInterval(() => updateTime(), 1000)">
     <!-- Header -->
-    <header class="bg-slate-900 text-white px-10 py-6 flex justify-between items-center shadow-lg">
-        <div class="flex items-center gap-4">
-            <!-- Logo Bengkel -->
-            <!-- <img src="/logo-bengkel.png" alt="Logo Bengkel" class="h-14 w-auto object-contain" /> -->
+    <header wire:ignore class="bg-slate-900 text-white px-10 py-6 flex justify-between items-center shadow-lg relative">
+
+        <div class="flex items-center gap-4 flex-1">
             @if($settings['brand_logo'])
-                <img src="{{ Storage::url($settings['brand_logo']) }}"
-                    class="h-14 w-auto object-contain" />
+                <img src="{{ Storage::url($settings['brand_logo']) }}" class="h-16 w-auto object-contain" />
             @endif
-            <h1 class="text-4xl font-bold tracking-wide">{{ $settings['brand_name'] }}</h1>
+            <div class="flex flex-col">
+                <h1 class="text-4xl font-bold tracking-wide leading-none">{{ $settings['brand_name'] }}</h1>
+                <p class="text-sm text-slate-400 mt-1 uppercase tracking-widest font-medium">
+                    Solusi Perawatan Kendaraan Anda
+                </p>
+            </div>
         </div>
 
-        <div class="flex items-center gap-6">
-            <div class="text-right" wire:ignore>
-                <div class="text-lg" x-text="date"></div>
-                <div class="text-2xl font-semibold" x-text="time"></div>
+        <div class="absolute left-1/2 transform -translate-x-1/2 text-center">
+            <h2
+                class="text-3xl font-black text-white border-b-4 border-yellow-500 pb-1 px-4 tracking-tighter uppercase">
+                Queue Service
+            </h2>
+        </div>
+
+        <div class="flex items-center gap-6 flex-1 justify-end">
+            <div class="text-right">
+                <div class="text-sm text-slate-400 font-medium" x-text="date"></div>
+                <div class="text-3xl font-mono font-bold text-yellow-400 leading-none" x-text="time"></div>
             </div>
 
-            <!-- Fullscreen Button -->
-            <button @click="toggleFS()" class="p-3 rounded-full hover:bg-slate-700 transition border border-slate-700">
-                <svg x-show="!isFullscreen" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            <button @click="toggleFS()"
+                class="p-3 rounded-full hover:bg-slate-700 transition border border-slate-700 text-white shadow-inner">
+                <svg x-show="!isFullscreen" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                 </svg>
-
-                <svg x-show="isFullscreen" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg x-show="isFullscreen" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -59,16 +70,16 @@ x-init="updateTime(); setInterval(() => updateTime(), 1000)">
             <h2 class="text-xl font-semibold text-center text-slate-600 mb-4">WAITING</h2>
             <div class="flex-1 space-y-3">
                 @foreach($waiting as $item)
-                <div class="rounded-xl border px-4 py-3 flex justify-between items-center">
-                    <div>
-                        <div class="text-2xl font-bold uppercase">{{ $item->vehicle->plate_number }}</div>
-                        <div class="text-xs text-slate-500">{{ $item->queue_code }}</div>
+                    <div class="rounded-xl border px-4 py-3 flex justify-between items-center">
+                        <div>
+                            <div class="text-2xl font-bold uppercase">{{ $item->vehicle->plate_number }}</div>
+                            <div class="text-xs text-slate-500">{{ $item->queue_code }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">Mechanic</div>
+                            <div class="text-base font-semibold">{{ $item->mechanic->name }}</div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-xs text-slate-500">Mechanic</div>
-                        <div class="text-base font-semibold">{{ $item->mechanic->name }}</div>
-                    </div>
-                </div>
                 @endforeach
             </div>
         </section>
@@ -78,16 +89,16 @@ x-init="updateTime(); setInterval(() => updateTime(), 1000)">
             <h2 class="text-xl font-semibold text-center text-blue-600 mb-4">PROCESSING</h2>
             <div class="flex-1 space-y-4">
                 @foreach($process as $item)
-                <div class="rounded-xl border px-4 py-3 flex justify-between items-center">
-                    <div>
-                        <div class="text-2xl font-bold text-blue-600 uppercase">{{ $item->vehicle->plate_number }}</div>
-                        <div class="text-xs text-slate-500">{{ $item->queue_code }}</div>
+                    <div class="rounded-xl border px-4 py-3 flex justify-between items-center">
+                        <div>
+                            <div class="text-2xl font-bold text-blue-600 uppercase">{{ $item->vehicle->plate_number }}</div>
+                            <div class="text-xs text-slate-500">{{ $item->queue_code }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">Mechanic</div>
+                            <div class="text-base font-semibold">{{ $item->mechanic->name }}</div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-xs text-slate-500">Mechanic</div>
-                        <div class="text-base font-semibold">{{ $item->mechanic->name }}</div>
-                    </div>
-                </div>
                 @endforeach
             </div>
         </section>
@@ -97,16 +108,17 @@ x-init="updateTime(); setInterval(() => updateTime(), 1000)">
             <h2 class="text-xl font-semibold text-center text-green-600 mb-4">FINISH</h2>
             <div class="flex-1 space-y-3">
                 @foreach($finish as $item)
-                <div class="rounded-xl bg-green-50 px-4 py-3 flex justify-between items-center">
-                    <div>
-                        <div class="text-2xl font-bold text-green-700 uppercase">{{ $item->vehicle->plate_number }}</div>
-                        <div class="text-xs text-green-600">{{ $item->queue_code }}</div>
+                    <div class="rounded-xl bg-green-50 px-4 py-3 flex justify-between items-center">
+                        <div>
+                            <div class="text-2xl font-bold text-green-700 uppercase">{{ $item->vehicle->plate_number }}
+                            </div>
+                            <div class="text-xs text-green-600">{{ $item->queue_code }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-green-500">Mechanic</div>
+                            <div class="text-base font-semibold text-green-700">{{ $item->mechanic->name }}</div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-xs text-green-500">Mechanic</div>
-                        <div class="text-base font-semibold text-green-700">{{ $item->mechanic->name }}</div>
-                    </div>
-                </div>
                 @endforeach
             </div>
         </section>
