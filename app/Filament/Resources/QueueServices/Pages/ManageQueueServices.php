@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\QueueServices\Pages;
 
 use App\Filament\Resources\QueueServices\QueueServiceResource;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ManageRecords;
@@ -17,6 +18,8 @@ class ManageQueueServices extends ManageRecords
     {
         return [
             CreateAction::make(),
+            Action::make('quick_pos')
+                ->label('Quick POS'),
         ];
     }
 

@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -30,6 +31,16 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->sidebarCollapsibleOnDesktop()
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Display Queue')
+                    ->icon('heroicon-o-tv')
+                    ->url("javascript:window.open(
+                        '" . url('/display/queue') . "',
+                        'displayWindow',
+                        'width=1280,height=720,toolbar=no,location=no,menubar=no,status=no,scrollbars=yes,resizable=yes'
+                    );"),
+            ])
             ->colors([
                 'primary' => Color::Red,
             ])
