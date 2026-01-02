@@ -4,10 +4,13 @@ namespace App\Filament\Resources\QueueServices\Pages;
 
 use App\Filament\Resources\QueueServices\QueueServiceResource;
 use Filament\Actions\CreateAction;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ManageRecords;
 
 class ManageQueueServices extends ManageRecords
 {
+    use ExposesTableToWidgets;
+
     protected static string $resource = QueueServiceResource::class;
 
     protected function getHeaderActions(): array
@@ -15,5 +18,10 @@ class ManageQueueServices extends ManageRecords
         return [
             CreateAction::make(),
         ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return QueueServiceResource::getWidgets();
     }
 }

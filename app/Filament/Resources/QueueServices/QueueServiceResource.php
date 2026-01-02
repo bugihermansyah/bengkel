@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\QueueServices;
 
 use App\Filament\Resources\QueueServices\Pages\ManageQueueServices;
+use App\Filament\Resources\QueueServices\Widgets\QueueServiceOverview;
 use App\Models\QueueService;
+use App\Models\User;
 use BackedEnum;
+use Filament\Actions\ActionGroup;
 use UnitEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -36,9 +39,6 @@ class QueueServiceResource extends Resource
     {
         return $schema
             ->components([
-                TextInput::make('number')
-                    ->required()
-                    ->numeric(),
                 Select::make('vehicle_id')
                     ->relationship('vehicle', 'plate_number')
                     ->required(),
@@ -57,12 +57,14 @@ class QueueServiceResource extends Resource
             ->modifyQueryUsing(fn(Builder $query) => $query->whereIn('status', ['waiting', 'processing', 'finished']))
             ->columns([
                 Stack::make([
-                    TextColumn::make('number')
+                    TextColumn::make('queue_code')
                         ->alignCenter()
+                        ->disabledClick()
                         ->numeric()
                         ->sortable(),
                     TextColumn::make('vehicle.plate_number')
                         ->alignCenter()
+                        ->disabledClick()
                         ->formatStateUsing(fn($state) => strtoupper($state))
                         ->size(TextSize::Large)
                         ->tooltip(
@@ -76,9 +78,11 @@ class QueueServiceResource extends Resource
                         ->searchable(),
                     TextColumn::make('mechanic.name')
                         ->alignCenter()
+                        ->disabledClick()
                         ->searchable(),
                     TextColumn::make('status')
                         ->badge()
+                        ->disabledClick()
                         ->alignCenter()
                         ->searchable(),
                 ]),
@@ -91,24 +95,49 @@ class QueueServiceResource extends Resource
                 //
             ])
             ->recordActions([
-                Action::make('cancel')
-                    ->button()
-                    ->outlined()
-                    ->icon('heroicon-o-x-circle')
-                    ->requiresConfirmation()
-                    ->modalIcon('heroicon-o-trash')
-                    ->modalHeading('Cancel Service')
-                    ->modalDescription('Are you sure you want to cancel this service?')
-                    ->schema([
-                        Textarea::make('notes')
-                            ->required(),
-                    ])
-                    ->action(function (QueueService $record, array $data): void {
-                        $record->update([
-                            'status' => 'cancelled',
-                            'notes' => $data['notes'],
-                        ]);
-                    }),
+                ActionGroup::make([
+                    Action::make('cancel')
+                        ->color('danger')
+                        ->icon(Heroicon::Trash)
+                        ->hiddenLabel()
+                        ->requiresConfirmation()
+                        ->modalIcon('heroicon-o-trash')
+                        ->modalHeading('Cancel Service')
+                        ->modalDescription('Are you sure you want to cancel this service?')
+                        ->schema([
+                            Textarea::make('notes')
+                                ->required(),
+                        ])
+                        ->action(function (QueueService $record, array $data): void {
+                            $record->update([
+                                'status' => 'canceled',
+                                'notes' => $data['notes'],
+                            ]);
+                        }),
+                    Action::make('formEdit')
+                        ->color('secondary')
+                        ->icon(Heroicon::PencilSquare)
+                        ->hiddenLabel()
+                        ->requiresConfirmation()
+                        ->fillForm(fn(QueueService $record): array => [
+                            'mechanic_id' => $record->mechanic->id,
+                            'complaint' => $record->complaint,
+                        ])
+                        ->schema([
+                            Select::make('mechanic_id')
+                                ->label('Mechanic')
+                                ->options(User::query()->pluck('name', 'id')),
+                            Textarea::make('complaint')
+                                ->required(),
+                        ])
+                        ->action(function (QueueService $record, array $data): void {
+                            $record->update([
+                                'mechanic_id' => $data['mechanic_id'],
+                                'complaint' => $data['complaint'],
+                            ]);
+                        }),
+                ])
+                    ->buttonGroup(),
                 Action::make('process')
                     ->button()
                     ->color('primary')
@@ -159,6 +188,13 @@ class QueueServiceResource extends Resource
     {
         return [
             'index' => ManageQueueServices::route('/'),
+        ];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            QueueServiceOverview::class,
         ];
     }
 }
