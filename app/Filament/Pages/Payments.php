@@ -46,7 +46,7 @@ class Payments extends Page
         $this->queue = QueueService::find($queueId);
 
         // 2. Validasi: Jika antrean tidak ada atau statusnya sudah 'done' / 'finish'
-        if (!$this->queue || $this->queue->status !== 'finish') {
+        if (!$this->queue || $this->queue->status !== 'finished') {
             $pesan = ($this->queue && $this->queue->status === 'done')
                 ? 'Antrean ini sudah dibayar.'
                 : 'Antrean belum siap untuk pembayaran.';
