@@ -6,8 +6,12 @@ use App\Filament\Resources\QueueServices\Pages\ManageQueueServices;
 use App\Filament\Resources\QueueServices\Widgets\QueueServiceOverview;
 use App\Models\QueueService;
 use App\Models\User;
+use App\Models\Vehicle;
 use BackedEnum;
 use Filament\Actions\ActionGroup;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use UnitEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -39,14 +43,87 @@ class QueueServiceResource extends Resource
     {
         return $schema
             ->components([
-                Select::make('vehicle_id')
-                    ->relationship('vehicle', 'plate_number')
-                    ->required(),
-                Select::make('mechanic_id')
-                    ->relationship('mechanic', 'name')
-                    ->required(),
-                Textarea::make('complaint')
-                    ->columnSpanFull(),
+                // Select::make('customer_id')
+                //     ->label('Cari Kendaraan / Nama')
+                //     ->relationship('customer', 'nopol') // Relasi ke tabel customer
+                //     ->getOptionLabelFromRecordUsing(fn($record) => "{$record->plate_number} - {$record->name}")
+                //     ->searchable(['nopol', 'name'])
+                //     ->createOptionForm([ // Pop-up jika Nopol belum terdaftar
+                //         TextInput::make('nopol')
+                //             ->required()
+                //             ->placeholder('B 1234 XXX'),
+                //         TextInput::make('name')
+                //             ->label('Nama Pemilik')
+                //             ->default('Customer Umum'),
+                //     ]),
+                // Select::make('vehicle_id')
+                //     ->relationship('vehicle', 'plate_number')
+                //     ->required(),
+                // Select::make('mechanic_id')
+                //     ->relationship('mechanic', 'name')
+                //     ->required(),
+                // Textarea::make('complaint')
+                //     ->columnSpanFull(),
+                Section::make('Input Antrian')
+                    ->schema([
+                        Select::make('vehicle_id')
+                            ->label('Cari Member (Nopol/Nama)')
+                            ->relationship(
+                                name: 'vehicle',
+                                titleAttribute: 'plate_number',
+                                // Tambahkan modifyQueryUsing untuk men-join tabel customers
+                                modifyQueryUsing: fn(Builder $query) => $query
+                                    ->join('customers', 'vehicles.customer_id', '=', 'customers.id')
+                                    ->select('vehicles.*', 'customers.name as customer_name')
+                            )
+                            ->searchable(['plate_number', 'customers.name'])
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                if ($state) {
+                                    $vehicle = Vehicle::with('customer')->find($state);
+                                    // Jika ketemu, otomatis isi field plate_number & customer_name
+                                    if ($vehicle) {
+                                        $set('plate_number', $vehicle->plate_number);
+                                        // Mengambil nama dari relasi customer
+                                        $set('customer_name', $vehicle->customer?->name ?? 'Tanpa Nama');
+                                    } else {
+                                        // Jika pilihan member dihapus, kosongkan field di bawahnya
+                                        $set('plate_number', null);
+                                        $set('customer_name', null);
+                                    }
+                                }
+                            })
+                            ->helperText('Kosongkan jika bukan member / pelanggan umum')
+                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->plate_number} - {$record->customer_name}"),
+                        TextInput::make('plate_number')
+                            ->label('Nomor Polisi (Display)')
+                            ->required()
+                            ->maxLength(9)
+                            ->live(onBlur: true) // Menjalankan logic saat kasir pindah field
+                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                // LOGIC: Jika Nopol diisi manual DAN bukan member DAN nama masih kosong
+                                if (filled($state) && blank($get('vehicle_id')) && blank($get('customer_name'))) {
+                                    $set('customer_name', 'Umum');
+                                }
+                            })
+                            ->readonly(fn(Get $get) => filled($get('vehicle_id')))
+                            ->extraInputAttributes(['style' => 'text-transform: uppercase'])
+                            ->dehydrateStateUsing(fn($state) => strtoupper(str_replace(' ', '', $state)))
+                            ->placeholder('B1234ABC')
+                            ->helperText('Ketik manual jika bukan member'),
+                        TextInput::make('customer_name')
+                            ->label('Nama Pelanggan')
+                            ->placeholder('Nama atau "Umum"'),
+                        Select::make('mechanic_id')
+                            ->label('Mekanik')
+                            ->relationship('mechanic', 'name')
+                            ->required(),
+                        Textarea::make('complaint')
+                            ->label('Keluhan')
+                            ->columnStart(2)
+                            ->required(),
+                    ])->columns(2),
             ])
             ->columns(1);
     }
@@ -62,7 +139,7 @@ class QueueServiceResource extends Resource
                         ->disabledClick()
                         ->numeric()
                         ->sortable(),
-                    TextColumn::make('vehicle.plate_number')
+                    TextColumn::make('plate_number')
                         ->alignCenter()
                         ->disabledClick()
                         ->formatStateUsing(fn($state) => strtoupper($state))

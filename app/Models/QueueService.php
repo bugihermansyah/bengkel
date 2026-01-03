@@ -19,6 +19,8 @@ class QueueService extends Model
         'queue_number',
         'queue_code',
         'vehicle_id',
+        'plate_number',
+        'customer_name',
         'mechanic_id',
         'complaint',
         'status',
@@ -30,6 +32,7 @@ class QueueService extends Model
         'cancel_at' => 'datetime',
         'process_at' => 'datetime',
         'finish_at' => 'datetime',
+        'is_payment' => 'boolean',
     ];
 
     public function vehicle(): BelongsTo

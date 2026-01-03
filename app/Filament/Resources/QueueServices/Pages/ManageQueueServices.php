@@ -17,7 +17,8 @@ class ManageQueueServices extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->modalHeading(false),
             Action::make('quick_pos')
                 ->label('Quick POS'),
         ];
