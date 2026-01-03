@@ -72,7 +72,7 @@
                 @foreach($waiting as $item)
                     <div class="rounded-xl border px-4 py-3 flex justify-between items-center">
                         <div>
-                            <div class="text-2xl font-bold uppercase">{{ $item->vehicle->plate_number }}</div>
+                            <div class="text-2xl font-bold uppercase">{{ $item->plate_number }}</div>
                             <div class="text-xs text-slate-500">{{ $item->queue_code }}</div>
                         </div>
                         <div class="text-right">
@@ -91,7 +91,7 @@
                 @foreach($process as $item)
                     <div class="rounded-xl border px-4 py-3 flex justify-between items-center">
                         <div>
-                            <div class="text-2xl font-bold text-blue-600 uppercase">{{ $item->vehicle->plate_number }}</div>
+                            <div class="text-2xl font-bold text-blue-600 uppercase">{{ $item->plate_number }}</div>
                             <div class="text-xs text-slate-500">{{ $item->queue_code }}</div>
                         </div>
                         <div class="text-right">
@@ -110,7 +110,7 @@
                 @foreach($finish as $item)
                     <div class="rounded-xl bg-green-50 px-4 py-3 flex justify-between items-center">
                         <div>
-                            <div class="text-2xl font-bold text-green-700 uppercase">{{ $item->vehicle->plate_number }}
+                            <div class="text-2xl font-bold text-green-700 uppercase">{{ $item->plate_number }}
                             </div>
                             <div class="text-xs text-green-600">{{ $item->queue_code }}</div>
                         </div>
