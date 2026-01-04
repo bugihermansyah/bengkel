@@ -23,9 +23,9 @@ use Filament\Tables\Table;
 class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
-    protected static string|UnitEnum|null $navigationGroup = 'Main';
+    protected static string|UnitEnum|null $navigationGroup = 'Pelanggan';
+    protected static ?string $navigationLabel = 'Pelanggan';
 
     public static function form(Schema $schema): Schema
     {

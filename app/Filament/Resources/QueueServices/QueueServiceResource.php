@@ -36,34 +36,12 @@ class QueueServiceResource extends Resource
 {
     protected static ?string $model = QueueService::class;
     protected static string|UnitEnum|null $navigationGroup = 'POS';
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
-
+    protected static ?string $navigationLabel = 'Antrian';
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                // Select::make('customer_id')
-                //     ->label('Cari Kendaraan / Nama')
-                //     ->relationship('customer', 'nopol') // Relasi ke tabel customer
-                //     ->getOptionLabelFromRecordUsing(fn($record) => "{$record->plate_number} - {$record->name}")
-                //     ->searchable(['nopol', 'name'])
-                //     ->createOptionForm([ // Pop-up jika Nopol belum terdaftar
-                //         TextInput::make('nopol')
-                //             ->required()
-                //             ->placeholder('B 1234 XXX'),
-                //         TextInput::make('name')
-                //             ->label('Nama Pemilik')
-                //             ->default('Customer Umum'),
-                //     ]),
-                // Select::make('vehicle_id')
-                //     ->relationship('vehicle', 'plate_number')
-                //     ->required(),
-                // Select::make('mechanic_id')
-                //     ->relationship('mechanic', 'name')
-                //     ->required(),
-                // Textarea::make('complaint')
-                //     ->columnSpanFull(),
                 Section::make('Input Antrian')
                     ->schema([
                         Select::make('vehicle_id')

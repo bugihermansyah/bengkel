@@ -27,9 +27,8 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
-    protected static string|UnitEnum|null $navigationGroup = 'Main';
-
-    // protected static ?string $recordTitleAttribute = 'name, description, image';
+    protected static string|UnitEnum|null $navigationGroup = 'Etalase';
+    protected static ?string $navigationLabel = 'Kategori';
 
     public static function form(Schema $schema): Schema
     {

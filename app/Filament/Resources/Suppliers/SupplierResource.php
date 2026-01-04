@@ -23,10 +23,9 @@ use Filament\Tables\Table;
 class SupplierResource extends Resource
 {
     protected static ?string $model = Supplier::class;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
-
-    protected static string|UnitEnum|null $navigationGroup = 'Main';
+    protected static string|UnitEnum|null $navigationGroup = 'Pelanggan';
+    protected static ?string $navigationLabel = 'Pemasok';
 
     public static function form(Schema $schema): Schema
     {

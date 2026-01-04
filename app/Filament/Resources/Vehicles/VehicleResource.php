@@ -25,7 +25,8 @@ class VehicleResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTruck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Main';
+    protected static string|UnitEnum|null $navigationGroup = 'Pelanggan';
+    protected static ?string $navigationLabel = 'Kendaraan';
 
     public static function form(Schema $schema): Schema
     {

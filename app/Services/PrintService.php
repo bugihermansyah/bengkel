@@ -32,10 +32,11 @@ class PrintService
 
             // --- INFO TRANSAKSI ---
             $printer->setJustification(Printer::JUSTIFY_LEFT);
+            $printer->text("Kasir  : " . $transaction->user->name . "\n");
             $printer->text("Nota   : " . $transaction->invoice_number . "\n");
             $printer->text("Tgl    : " . $transaction->created_at->format('d/m/y H:i') . "\n");
-            $printer->text("Cust   : " . substr($transaction->customer_name, 0, 20) . "\n");
-            $printer->text("Nopol  : " . ($transaction->plate_number ?? '-') . "\n");
+            $printer->text("Pel    : " . substr($transaction->customer_name, 0, 20) . "\n");
+            $printer->text("Nopol  : " . ($transaction->queueService->plate_number ?? '-') . "\n");
             $printer->text("Mekanik: " . ($transaction->queueService->mechanic->name ?? '-') . "\n");
             $printer->text(str_repeat("-", 32) . "\n");
 
@@ -52,6 +53,7 @@ class PrintService
 
             // --- FOOTER / TOTAL ---
             $printer->setJustification(Printer::JUSTIFY_RIGHT);
+            $printer->text("Pembayaran  : " . $transaction->payment_method . "\n");
             if ($transaction->discount_amount > 0) {
                 $printer->text("Diskon: " . number_format($transaction->discount_amount, 0, ',', '.') . "\n");
             }

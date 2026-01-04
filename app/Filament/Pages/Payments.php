@@ -65,12 +65,11 @@ class Payments extends Page
 
         $this->queue = QueueService::with([
             'mechanic',
-            'vehicle.customer',
         ])->findOrFail($queueId);
 
         $this->customer = [
-            'name' => $this->queue->vehicle->customer->name ?? '-',
-            'plate' => $this->queue->vehicle->plate_number ?? '-',
+            'name' => $this->queue->customer_name ?? '-',
+            'plate' => $this->queue->plate_number ?? '-',
             'mechanic' => $this->queue->mechanic->name ?? '-',
         ];
 
