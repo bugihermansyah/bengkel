@@ -47,7 +47,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 MenuItem::make()
-                    ->label('Display Queue')
+                    ->label('Display Antrian')
                     ->icon('heroicon-o-tv')
                     ->url("javascript:window.open(
                         '" . url('/display/queue') . "',

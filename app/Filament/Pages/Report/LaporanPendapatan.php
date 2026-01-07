@@ -3,7 +3,9 @@
 namespace App\Filament\Pages\Report;
 
 use App\Filament\Exports\TransactionExporter;
+use App\Filament\Pages\Report\Transaction\ViewTransaction;
 use App\Models\Transaction;
+use Filament\Actions\Action;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Pages\Page;
@@ -35,6 +37,7 @@ class LaporanPendapatan extends Page implements HasTable
     {
         return $table
             ->query(Transaction::query())
+            ->persistFiltersInSession()
             ->columns([
                 TextColumn::make('invoice_number')
                     ->label('No. Invoice'),
@@ -110,7 +113,13 @@ class LaporanPendapatan extends Page implements HasTable
                     })
             ], layout: FiltersLayout::AboveContent)
             ->recordActions([
-                // ...
+                Action::make('viewDetail')
+                    ->label('Detail')
+                    ->badge()
+                    ->icon('heroicon-m-document-text')
+                    ->color('info')
+                    // URL diarahkan ke Custom Page ViewTransaction
+                    ->url(fn(Transaction $record): string => ViewTransaction::getUrl(['record' => $record->id])),
             ])
             ->toolbarActions([
                 ExportAction::make()

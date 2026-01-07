@@ -109,6 +109,7 @@ class QueueServiceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->paginated([50, 'all'])
             ->modifyQueryUsing(fn(Builder $query) => $query->whereIn('status', ['waiting', 'processing', 'finished']))
             ->columns([
                 Stack::make([
