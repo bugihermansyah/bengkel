@@ -242,8 +242,22 @@ class Payments extends Page
                     if (!$isService) {
                         $product = Product::find($item['id']);
                         if ($product) {
-                            $purchasePrice = $product->purchase_price; // Ambil harga modal saat ini
-                            $product->decrement('stock', $item['qty']); // Kurangi stok
+                            if ($product->stock < $item['qty']) {
+                                throw new \Exception("Stok {$product->name} tidak mencukupi.");
+                            }
+
+                            $purchasePrice = $product->purchase_price;
+                            $product->decrement('stock', $item['qty']);
+
+                            if ($product->stock <= $product->minimum_stock) {
+                                Notification::make()
+                                    ->title('Peringatan Stok Rendah!')
+                                    ->body("Stok {$product->name} tersisa {$product->stock}. Segera restock!")
+                                    ->warning()
+                                    ->persistent()
+                                    ->sendToDatabase(auth()->user())
+                                    ->send();
+                            }
                         }
                     }
 

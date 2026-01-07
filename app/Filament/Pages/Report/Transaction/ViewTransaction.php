@@ -16,6 +16,7 @@ class ViewTransaction extends Page implements HasSchemas
 {
     use InteractsWithSchemas;
 
+    protected static bool $shouldRegisterNavigation = false;
     protected string $view = 'filament.pages.report.transaction.view-transaction';
     protected static ?string $title = 'Detail Transaksi';
 

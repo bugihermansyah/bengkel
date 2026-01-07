@@ -29,41 +29,49 @@ class ProductResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
     protected static string|UnitEnum|null $navigationGroup = 'Etalase';
     protected static ?string $navigationLabel = 'Produk';
+
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 TextInput::make('barcode'),
                 TextInput::make('name')
+                    ->label('Nama')
                     ->required(),
                 TextInput::make('sku')
                     ->label('SKU'),
                 Select::make('category_id')
+                    ->label('Kategori')
                     ->relationship('category', 'name')
+                    ->preload()
                     ->searchable()
                     ->required(),
                 Select::make('rack_id')
+                    ->label('Rak')
+                    ->preload()
                     ->searchable()
                     ->relationship('rack', 'name')
                     ->required(),
-                // Select::make('supplier_id')
-                //     ->relationship('supplier', 'name')
-                //     ->required(),
                 TextInput::make('stock')
+                    ->label('Stok')
                     ->required()
                     ->numeric()
                     ->default(0),
                 TextInput::make('purchase_price')
+                    ->label('Harga beli')
                     ->required()
                     ->numeric()
                     ->prefix('Rp'),
                 TextInput::make('selling_price')
+                    ->label('Harga jual')
                     ->required()
                     ->numeric()
                     ->prefix('Rp'),
                 Textarea::make('description')
+                    ->label('Keterangan')
                     ->columnSpanFull(),
                 FileUpload::make('image')
+                    ->label('Foto')
                     ->columnSpanFull()
                     ->image()
                     ->disk('public')
@@ -77,24 +85,31 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 ImageColumn::make('image')
+                    ->label('Foto')
                     ->disk('public')
                     ->visibility('public'),
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('category.name')
+                    ->label('Kategori')
                     ->searchable(),
                 TextColumn::make('rack.name')
+                    ->label('Rak')
                     ->searchable(),
                 TextColumn::make('stock')
-                    ->numeric()
+                    ->label('Stok')
                     ->sortable(),
                 TextColumn::make('purchase_price')
-                    ->money('idr')
+                    ->label('Harga beli')
+                    ->money('idr', decimalPlaces: 0)
                     ->sortable(),
                 TextColumn::make('selling_price')
-                    ->money()
+                    ->label('Harga jual')
+                    ->money('idr', decimalPlaces: 0)
                     ->sortable(),
                 TextColumn::make('barcode')
+                    ->label('Barcode')
                     ->searchable(),
                 TextColumn::make('sku')
                     ->label('SKU')
