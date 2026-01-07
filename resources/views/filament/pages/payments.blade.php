@@ -17,13 +17,20 @@
                     </div>
 
                     <div class="w-full md:w-1/3">
-                        <select x-model="category"
+                        <select wire:model.live="category"
+                            class="block w-full py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition shadow-sm">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat['id'] }}">{{ $cat['name'] }}</option>
+                            @endforeach
+                        </select>
+                        <!-- <select x-model="category"
                             class="block w-full py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition shadow-sm">
                             <option value="">Semua Kategori</option>
                             <template x-for="cat in categories" :key="cat.id">
                                 <option :value="cat.id" x-text="cat.name"></option>
                             </template>
-                        </select>
+                        </select> -->
                     </div>
                 </div>
 
@@ -115,7 +122,7 @@
                     <div
                         class="flex justify-between items-center bg-red-50 dark:bg-red-900/20 p-2 rounded-lg border border-red-100 dark:border-red-900/50">
                         <span class="text-xs font-bold text-red-700 dark:text-red-400">DISKON (Rp)</span>
-                        <input type="number" x-model.number="discount" placeholder="Input diskon"
+                        <input type="number" x-model.number="discount" placeholder="Input diskon" @focus="$el.select()"
                             class="text-right text-sm w-28 rounded-md border bg-white text-gray-600 focus:ring-0 p-0">
                         <p class="text-[14px] text-right font-black text-red-600" x-text="formatRupiah(discount)"></p>
                     </div>
@@ -123,7 +130,7 @@
                     <div x-show="paymentMethod === 'cash'"
                         class="flex justify-between items-center bg-green-50 dark:bg-green-900/20 p-2 rounded-lg border border-green-100 dark:border-green-900/50">
                         <span class="text-xs font-bold text-green-700 dark:text-green-400">DIBAYAR (Rp)</span>
-                        <input type="number" x-model.number="paymentReceived" placeholder="Input dibayar"
+                        <input type="number" x-model.number="paymentReceived" placeholder="Input dibayar" @focus="$el.select()"
                             class="text-right text-sm w-28 rounded-md border bg-white text-gray-600 focus:ring-0 p-0">
                         <p class="text-[14px] text-right font-black text-green-600"
                             x-text="formatRupiah(paymentReceived)">
@@ -143,37 +150,6 @@
                             <span class="text-2xl font-black text-primary-600"
                                 x-text="formatRupiah(totalAfterDiscount)"></span>
                         </div>
-                        <!-- <button @click="confirmPayment"
-                            :disabled="paymentMethod === 'cash' && paymentReceived < totalAfterDiscount"
-                            :class="paymentMethod === 'cash' && paymentReceived < totalAfterDiscount ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'"
-                            class="w-full text-white py-4 rounded-xl font-black shadow-lg transition uppercase tracking-widest text-sm">
-                            PROSES BAYAR (<span x-text="paymentMethod"></span>)
-                        </button> -->
-                        <!-- <button type="button" x-on:click="confirmPayment()" :disabled="cart.length === 0 || loading"
-                            :class="{'opacity-50 cursor-not-allowed': cart.length === 0 || loading}"
-                            class="flex items-center justify-center w-full px-4 py-3 text-white transition-colors bg-red-500 rounded-xl hover:bg-red-600 focus:outline-none">
-                            <template x-if="loading">
-                                <svg class="w-5 h-5 mr-3 animate-spin" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                        stroke-width="4" fill="none"></circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
-                            </template>
-
-                            <span x-text="loading ? 'MENGEPROSES...' : 'PROSES BAYAR'"></span>
-                        </button> -->
-                        <!-- <button type="button" x-on:click="confirmPayment()" :disabled="cart.length === 0 || loading"
-                            :class="{'opacity-50 cursor-not-allowed': cart.length === 0 || loading}"
-                            class="flex items-center justify-center w-full px-4 py-3 text-white transition-all bg-red-500 rounded-xl hover:bg-red-600 font-black">
-                            <template x-if="loading">
-                                <svg class="w-5 h-5 mr-3 animate-spin" ...></svg>
-                            </template>
-
-                            <span
-                                x-text="loading ? 'MEMPROSES...' : 'PROSES BAYAR (' + paymentMethod.toUpperCase() + ')' "></span>
-                        </button> -->
                         <button type="button" x-on:click="confirmPayment()" :disabled="cart.length === 0"
                             :class="{'opacity-50 cursor-not-allowed': cart.length === 0}"
                             class="flex items-center justify-center w-full px-4 py-3 text-white transition-all bg-red-500 rounded-xl hover:bg-red-600 font-black shadow-lg">
@@ -210,7 +186,7 @@
                     items: @entangle('products'),
                     hasMore: @entangle('hasMore'),
                     search: '',
-                    category: '',
+                    category: @entangle('category'),
                     cart: [],
                     manualName: '',
                     manualPrice: '',
@@ -221,9 +197,7 @@
                     get filteredItems() {
                         return this.items.filter(i => {
                             const term = this.search.toLowerCase();
-                            const matchSearch = !this.search || i.name.toLowerCase().includes(term);
-                            const matchCat = !this.category || i.category_id == this.category;
-                            return matchSearch && matchCat;
+                            return !this.search || i.name.toLowerCase().includes(term);
                         });
                     },
 
@@ -234,7 +208,12 @@
                             }
                         });
 
-                        window.addEventListener('close-modal', () => {
+                        // window.addEventListener('close-modal', () => {
+                        //     this.loading = false;
+                        // });
+
+                        this.$watch('items', () => {
+                            // Jika items berubah (karena kategori ganti), pastikan loading state di frontend mati
                             this.loading = false;
                         });
                     },

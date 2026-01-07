@@ -26,7 +26,7 @@ class Payments extends Page
 
     public int $page = 1;
     public int $perPage = 20;
-    public ?int $category = null;
+    public $category = null;
     public bool $hasMore = true;
 
     public int $discount = 0;
@@ -86,14 +86,20 @@ class Payments extends Page
         if (!$this->hasMore)
             return;
 
-        $query = Product::with('category')->where('status', true);
+        $query = Product::with('category')
+            ->where('status', true)
+            ->when($this->category, function ($q) {
+                $q->where('category_id', $this->category);
+            });
 
         // Load products
         $paginator = $query->orderBy('name')->paginate($this->perPage, ['*'], 'page', $this->page);
 
         if ($paginator->isEmpty()) {
             $this->hasMore = false;
-            return;
+            // Jangan return dulu jika ini halaman 1 (mungkin memang kosong)
+            if ($this->page > 1)
+                return;
         }
 
         $newProducts = collect($paginator->items())->map(fn($p) => [
@@ -111,8 +117,9 @@ class Payments extends Page
         $this->hasMore = $paginator->hasMorePages();
     }
 
-    public function updatedCategory()
+    public function updatedCategory($value)
     {
+        // $this->category = $value === "" ? null : (int) $value;
         // 1. Kosongkan array produk yang ada saat ini
         $this->products = [];
 
@@ -124,6 +131,7 @@ class Payments extends Page
 
         // 4. Panggil fungsi load produk dengan filter kategori yang baru
         $this->loadMoreProducts();
+        // $this->dispatch('products-updated');
     }
 
     public function addManualService($name, $price)
@@ -228,17 +236,26 @@ class Payments extends Page
 
                 // 2. Simpan Items
                 foreach ($cart as $item) {
+                    $isService = str_contains($item['id'], 'service-');
+                    $purchasePrice = 0; // Default untuk jasa
+
+                    if (!$isService) {
+                        $product = Product::find($item['id']);
+                        if ($product) {
+                            $purchasePrice = $product->purchase_price; // Ambil harga modal saat ini
+                            $product->decrement('stock', $item['qty']); // Kurangi stok
+                        }
+                    }
+
                     $trx->items()->create([
                         'product_id' => str_contains($item['id'], 'service-') ? null : $item['id'],
                         'name' => $item['name'],
                         'qty' => $item['qty'],
+                        'purchase_price' => $purchasePrice,
                         'price' => $item['price'],
                         'subtotal' => $item['price'] * $item['qty'],
                     ]);
 
-                    if (!str_contains($item['id'], 'service-')) {
-                        Product::find($item['id'])?->decrement('stock', $item['qty']);
-                    }
                 }
 
                 $this->queue->update(['status' => 'done']);
