@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('/')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
+            ->databaseNotifications()
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
                 NavigationGroup::make()
@@ -39,6 +40,8 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Pelanggan'),
                 NavigationGroup::make()
                     ->label('Etalase'),
+                NavigationGroup::make()
+                    ->label('Laporan'),
                 NavigationGroup::make()
                     ->label('Pengaturan'),
             ])
