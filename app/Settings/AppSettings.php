@@ -4,15 +4,17 @@ namespace App\Settings;
 
 use Spatie\LaravelSettings\Settings;
 
-class DisplaySettings extends Settings
+class AppSettings extends Settings
 {
     public string $brand_name;
     public ?string $brand_logo;
-    public ?string $slogan;
-    public ?string $footer;
+    public ?string $address;
+    public ?string $telp;
+    public ?string $favicon;
+
 
     public static function group(): string
     {
-        return 'display';
+        return 'app';
     }
 }

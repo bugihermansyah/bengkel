@@ -25,7 +25,10 @@ class ManageDisplay extends SettingsPage
                     ->aside()
                     ->schema([
                         TextInput::make('brand_name')
-                            ->label('Workshop')
+                            ->label('Nama Bengkel')
+                            ->required(),
+                        TextInput::make('slogan')
+                            ->label('Slogan')
                             ->required(),
                         TextInput::make('footer')
                             ->label('Footer'),
