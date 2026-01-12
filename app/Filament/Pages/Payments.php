@@ -6,21 +6,28 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\QueueService;
 use App\Models\Transaction;
+use App\Models\Vehicle;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\HasAction;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class Payments extends Page
 {
     use HasAction;
-    protected static bool $shouldRegisterNavigation = false;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
+    protected static string|\UnitEnum|null $navigationGroup = 'POS';
+    protected static ?string $navigationLabel = 'POS';
     protected string $view = 'filament.pages.payments';
+    protected ?string $heading = '';
 
     public ?QueueService $queue = null;
     public array $customer = [];
+    public $searchMember = '';
     public array $products = [];
     public array $categories = [];
 
@@ -28,6 +35,7 @@ class Payments extends Page
     public int $perPage = 20;
     public $category = null;
     public bool $hasMore = true;
+    public $search = '';
 
     public int $discount = 0;
     public string $payment_method = 'cash';
@@ -43,35 +51,65 @@ class Payments extends Page
     public function mount(): void
     {
         $queueId = request()->query('queue');
-        $this->queue = QueueService::find($queueId);
 
-        // 2. Validasi: Jika antrean tidak ada atau statusnya sudah 'done' / 'finish'
-        if (!$this->queue || $this->queue->status !== 'finished') {
-            $pesan = ($this->queue && $this->queue->status === 'done')
-                ? 'Antrean ini sudah dibayar.'
-                : 'Antrean belum siap untuk pembayaran.';
+        if ($queueId) {
+            // JALUR SERVICE: Ambil data dari antrean
+            $this->queue = QueueService::with(['mechanic', 'vehicle'])->find($queueId);
 
-            Notification::make()
-                ->title('Akses Ditolak')
-                ->body($pesan)
-                ->danger()
-                ->send();
+            if (!$this->queue || $this->queue->status !== 'finished') {
+                // ... tetap simpan validasi status jika lewat jalur antrean ...
+                Notification::make()->title('Antrean belum siap')->danger()->send();
+                $this->redirect('/queue-services');
+                return;
+            }
 
-            $this->redirect('/queue-services');
-            return;
+            $this->customer = [
+                'name' => $this->queue->customer_name ?? 'Pelanggan Umum',
+                'plate' => $this->queue->plate_number ?? '-',
+                'mechanic' => $this->queue->mechanic->name ?? '-',
+                'cashier' => auth()->user()->name,
+                'is_from_queue' => $this->queue ? true : false,
+            ];
+        } else {
+            // JALUR BELI LANGSUNG: Set default pelanggan umum
+            $this->queue = null;
+            $this->customer = [
+                'name' => 'Pelanggan Umum',
+                'plate' => 'Non-Kendaraan',
+                'mechanic' => 'Tanpa Mekanik',
+                'cashier' => auth()->user()->name,
+                'is_from_queue' => $this->queue ? true : false,
+            ];
         }
-        // if (!$queueId)
-        //     abort(404);
+        // $this->queue = QueueService::find($queueId);
 
-        $this->queue = QueueService::with([
-            'mechanic',
-        ])->findOrFail($queueId);
+        // // 2. Validasi: Jika antrean tidak ada atau statusnya sudah 'done' / 'finish'
+        // if (!$this->queue || $this->queue->status !== 'finished') {
+        //     $pesan = ($this->queue && $this->queue->status === 'done')
+        //         ? 'Antrean ini sudah dibayar.'
+        //         : 'Antrean belum siap untuk pembayaran.';
 
-        $this->customer = [
-            'name' => $this->queue->customer_name ?? '-',
-            'plate' => $this->queue->plate_number ?? '-',
-            'mechanic' => $this->queue->mechanic->name ?? '-',
-        ];
+        //     Notification::make()
+        //         ->title('Akses Ditolak')
+        //         ->body($pesan)
+        //         ->danger()
+        //         ->send();
+
+        //     $this->redirect('/queue-services');
+        //     return;
+        // }
+        // // if (!$queueId)
+        // //     abort(404);
+
+        // $this->queue = QueueService::with([
+        //     'mechanic',
+        // ])->findOrFail($queueId);
+
+        // $this->customer = [
+        //     'name' => $this->queue->customer_name ?? '-',
+        //     'plate' => $this->queue->plate_number ?? '-',
+        //     'mechanic' => $this->queue->mechanic->name ?? '-',
+        // ];
 
         $this->categories = Category::select('id', 'name')
             ->orderBy('name')
@@ -90,6 +128,9 @@ class Payments extends Page
             ->where('status', true)
             ->when($this->category, function ($q) {
                 $q->where('category_id', $this->category);
+            })
+            ->when($this->search, function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%');
             });
 
         // Load products
@@ -117,21 +158,9 @@ class Payments extends Page
         $this->hasMore = $paginator->hasMorePages();
     }
 
-    public function updatedCategory($value)
+    public function updatedCategory()
     {
-        // $this->category = $value === "" ? null : (int) $value;
-        // 1. Kosongkan array produk yang ada saat ini
-        $this->products = [];
-
-        // 2. Reset halaman ke nomor 1
-        $this->page = 1;
-
-        // 3. Set kembali hasMore menjadi true agar bisa loading lagi
-        $this->hasMore = true;
-
-        // 4. Panggil fungsi load produk dengan filter kategori yang baru
-        $this->loadMoreProducts();
-        // $this->dispatch('products-updated');
+        $this->resetPageAndProducts();
     }
 
     public function addManualService($name, $price)
@@ -224,8 +253,8 @@ class Payments extends Page
                 // 1. Simpan Header Transaksi
                 $trx = Transaction::create([
                     'invoice_number' => 'INV-' . now()->format('YmdHis'),
-                    'queue_service_id' => $this->queue->id,
-                    'vehicle_id' => $this->queue->vehicle_id,
+                    'queue_service_id' => $this->queue?->id,
+                    'vehicle_id' => $this->queue?->vehicle_id,
                     'customer_name' => $this->customer['name'],
                     'total_amount' => $total,
                     'discount_amount' => $discount,
@@ -247,7 +276,18 @@ class Payments extends Page
                             }
 
                             $purchasePrice = $product->purchase_price;
+                            $stockBefore = $product->stock;
+
                             $product->decrement('stock', $item['qty']);
+
+                            $product->stockLogs()->create([
+                                'reference_id' => $trx->id,
+                                'type' => 'out',
+                                'quantity' => $item['qty'],
+                                'stock_before' => $stockBefore,
+                                'stock_after' => $product->stock,
+                                'note' => "Penjualan: {$trx->invoice_number}",
+                            ]);
 
                             if ($product->stock <= $product->minimum_stock) {
                                 Notification::make()
@@ -272,7 +312,9 @@ class Payments extends Page
 
                 }
 
-                $this->queue->update(['status' => 'done']);
+                if ($this->queue) {
+                    $this->queue->update(['status' => 'done']);
+                }
                 return $trx;
             });
 
@@ -294,4 +336,47 @@ class Payments extends Page
         }
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPageAndProducts();
+    }
+
+    protected function resetPageAndProducts()
+    {
+        $this->products = [];
+        $this->page = 1;
+        $this->hasMore = true;
+        $this->loadMoreProducts();
+    }
+
+    public function updatedSearchMember()
+    {
+        if (strlen($this->searchMember) < 3)
+            return;
+
+        // Cari di tabel Vehicle (asumsi tabel vehicle menyimpan nopol dan relasi ke customer)
+        $vehicle = Vehicle::where('plate_number', 'like', '%' . $this->searchMember . '%')
+            ->with('customer')
+            ->first();
+
+        if ($vehicle) {
+            // Update array customer di backend
+            $this->customer['name'] = $vehicle->customer->name ?? 'Member Tanpa Nama';
+            $this->customer['plate'] = $vehicle->plate_number;
+
+            $this->searchMember = ''; // Bersihkan input pencarian
+
+            Notification::make()
+                ->title('Member ditemukan!')
+                ->body("Nama: " . $this->customer['name'])
+                ->success()
+                ->send();
+        } else {
+            // Opsional: Notif jika tidak ketemu
+            Notification::make()
+                ->title('Data tidak ditemukan')
+                ->warning()
+                ->send();
+        }
+    }
 }

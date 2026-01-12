@@ -4,14 +4,34 @@
 
             <div class="col-span-8">
                 <div class="flex flex-col md:flex-row gap-3 mb-6 items-center">
+                    <!-- <div class="relative w-full md:w-2/3 group">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400" />
+                        </div>
+                        <input type="text" wire:model.live.debounce.500ms="search"
+                            placeholder="Cari sparepart atau jasa..."
+                            class="block w-full pl-10 pr-10 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition shadow-sm" />
+                        <button x-show="search.length > 0" @click="search = ''" type="button"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                            <x-heroicon-m-x-mark class="w-5 h-5" />
+                        </button>
+                    </div> -->
                     <div class="relative w-full md:w-2/3 group">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400" />
                         </div>
-                        <input type="text" x-model.debounce.300ms="search" placeholder="Cari sparepart atau jasa..."
+
+                        <input type="text" wire:model.live.debounce.500ms="search"
+                            placeholder="Cari sparepart atau jasa..."
                             class="block w-full pl-10 pr-10 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition shadow-sm" />
-                        <button x-show="search.length > 0" @click="search = ''" type="button"
-                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+
+                        <div wire:loading wire:target="search" class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <x-filament::loading-indicator class="w-5 h-5 text-primary-500" />
+                        </div>
+
+                        <button wire:loading.remove wire:target="search" x-show="search.length > 0"
+                            @click="search = ''; $wire.set('search', '')" type="button"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                             <x-heroicon-m-x-mark class="w-5 h-5" />
                         </button>
                     </div>
@@ -24,13 +44,6 @@
                                 <option value="{{ $cat['id'] }}">{{ $cat['name'] }}</option>
                             @endforeach
                         </select>
-                        <!-- <select x-model="category"
-                            class="block w-full py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition shadow-sm">
-                            <option value="">Semua Kategori</option>
-                            <template x-for="cat in categories" :key="cat.id">
-                                <option :value="cat.id" x-text="cat.name"></option>
-                            </template>
-                        </select> -->
                     </div>
                 </div>
 
@@ -52,18 +65,70 @@
                             </div>
                         </div>
                     </template>
+                    <!-- <template x-if="loading || $wire.loading">
+                        <div class="contents">
+                            <template x-for="i in 8" :key="i">
+                                <div class="bg-gray-100 dark:bg-gray-800 animate-pulse border rounded-xl p-2 h-40">
+                                    <div class="w-full h-24 bg-gray-200 dark:bg-gray-700 rounded-lg mb-2"></div>
+                                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </template> -->
                 </div>
             </div>
 
             <div class="col-span-4 bg-white dark:bg-gray-800 border rounded-xl p-4 shadow-sm h-fit sticky top-4">
-                <div class="border-b pb-3 mb-3">
-                    <h2 class="font-bold text-lg" x-text="customer.name"></h2>
-                    <div class="flex justify-between items-center">
-                        <p class="text-xs text-gray-500" x-text="customer.plate"></p>
-                        <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
-                            x-text="customer.mechanic"></span>
+                @if(!$queue)
+                <div
+                    class="mb-4 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800">
+                    <label
+                        class="text-[10px] font-bold text-primary-700 dark:text-primary-400 uppercase mb-1 block">Cari
+                        Member (Nopol)</label>
+                    <div class="relative">
+                        <input type="text" wire:model.live.debounce.500ms="searchMember"
+                            placeholder="Masukkan Nopol Member"
+                            class="w-full text-sm border-none bg-white dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-primary-500 shadow-sm uppercase placeholder:normal-case">
+                        <div wire:loading wire:target="searchMember" class="absolute right-2 top-1/2 -translate-y-1/2">
+                            <x-filament::loading-indicator class="w-4 h-4 text-primary-500" />
+                        </div>
                     </div>
                 </div>
+                @endif
+                <div class="border-b pb-3 mb-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="font-bold text-lg" x-text="customer.name"></h2>
+                            <template x-if="!customer.is_from_queue">
+                                <span class="text-[8px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold uppercase">Retail</span>
+                            </template>
+                        </div>
+                        <p class="text-xs text-gray-500 font-mono" x-text="customer.plate"></p>
+                    </div>
+                    <button x-show="!customer.is_from_queue && customer.plate !== 'Non-Kendaraan'" 
+                        @click="$wire.set('customer.name', 'Pelanggan Umum (Walk-in)'); 
+                        $wire.set('customer.plate', 'Non-Kendaraan')"
+                        class="text-[10px] text-red-500 hover:underline">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="mt-3 space-y-1 border-t border-dashed pt-2">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-gray-400 uppercase">Kasir:</span>
+                        <span class="font-bold text-gray-600 dark:text-gray-300" x-text="customer.cashier"></span>
+                    </div>
+                    
+                    <template x-if="customer.is_from_queue">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-gray-400 uppercase">Mekanik:</span>
+                            <span class="font-bold text-blue-600 dark:text-blue-400" x-text="customer.mechanic"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
 
                 <div class="overflow-y-auto mb-4 border-b border-dashed" style="max-height: 30vh;">
                     <template x-for="item in cart" :key="item.id">
@@ -130,7 +195,8 @@
                     <div x-show="paymentMethod === 'cash'"
                         class="flex justify-between items-center bg-green-50 dark:bg-green-900/20 p-2 rounded-lg border border-green-100 dark:border-green-900/50">
                         <span class="text-xs font-bold text-green-700 dark:text-green-400">DIBAYAR (Rp)</span>
-                        <input type="number" x-model.number="paymentReceived" placeholder="Input dibayar" @focus="$el.select()"
+                        <input type="number" x-model.number="paymentReceived" placeholder="Input dibayar"
+                            @focus="$el.select()"
                             class="text-right text-sm w-28 rounded-md border bg-white text-gray-600 focus:ring-0 p-0">
                         <p class="text-[14px] text-right font-black text-green-600"
                             x-text="formatRupiah(paymentReceived)">
@@ -182,10 +248,10 @@
                 Alpine.data('posApp', () => ({
                     loading: false,
                     categories: @js($this->categories),
-                    customer: @js($this->customer),
+                    customer: @entangle('customer'),
                     items: @entangle('products'),
                     hasMore: @entangle('hasMore'),
-                    search: '',
+                    search: @entangle('search'),
                     category: @entangle('category'),
                     cart: [],
                     manualName: '',
@@ -195,10 +261,11 @@
                     paymentReceived: '',
 
                     get filteredItems() {
-                        return this.items.filter(i => {
-                            const term = this.search.toLowerCase();
-                            return !this.search || i.name.toLowerCase().includes(term);
-                        });
+                        // return this.items.filter(i => {
+                        //     const term = this.search.toLowerCase();
+                        //     return !this.search || i.name.toLowerCase().includes(term);
+                        // });
+                        return this.items;
                     },
 
                     init() {
@@ -208,12 +275,7 @@
                             }
                         });
 
-                        // window.addEventListener('close-modal', () => {
-                        //     this.loading = false;
-                        // });
-
                         this.$watch('items', () => {
-                            // Jika items berubah (karena kategori ganti), pastikan loading state di frontend mati
                             this.loading = false;
                         });
                     },
@@ -310,17 +372,6 @@
                         // Panggil action konfirmasi di backend
                         this.$wire.mountAction('checkoutAction');
                     }
-                    // confirmPayment() {
-                    //     if (this.paymentMethod === 'cash' && this.paymentReceived < this.totalAfterDiscount) {
-                    //         alert('Uang yang diterima kurang!');
-                    //         return;
-                    //     }
-                    //     if (confirm(`Konfirmasi pembayaran via ${this.paymentMethod.toUpperCase()}?`)) {
-                    //         this.loading = true;
-                    //         this.$wire.checkout(this.cart, this.totalAfterDiscount, this.discount, this.paymentMethod, this.paymentReceived)
-                    //             .finally(() => this.loading = false);
-                    //     }
-                    // }
                 }))
             })
         </script>
