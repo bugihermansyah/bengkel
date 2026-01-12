@@ -29,7 +29,7 @@
             <div class="flex flex-col">
                 <h1 class="text-4xl font-bold tracking-wide leading-none">{{ $settings['brand_name'] }}</h1>
                 <p class="text-sm text-slate-400 mt-1 uppercase tracking-widest font-medium">
-                    Solusi Perawatan Kendaraan Anda
+                    {{ $settings['slogan'] }}
                 </p>
             </div>
         </div>
