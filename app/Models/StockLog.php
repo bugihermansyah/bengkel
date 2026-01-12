@@ -25,4 +25,14 @@ class StockLog extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'reference_id');
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class, 'reference_id');
+    }
 }

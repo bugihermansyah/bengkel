@@ -17,14 +17,14 @@ class PurchaseOrdersTable
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable(),
                 TextColumn::make('po_number')
+                    ->label('Nomor PO')
                     ->searchable(),
                 TextColumn::make('supplier.name')
+                    ->label('Supplier')
                     ->searchable(),
                 TextColumn::make('order_date')
+                    ->label('Tanggal PO')
                     ->date()
                     ->sortable(),
                 TextColumn::make('total_amount')
@@ -83,9 +83,9 @@ class PurchaseOrdersTable
                 EditAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                // BulkActionGroup::make([
+                //     DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 }

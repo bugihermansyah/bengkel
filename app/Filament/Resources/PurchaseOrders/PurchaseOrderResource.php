@@ -18,7 +18,10 @@ class PurchaseOrderResource extends Resource
 {
     protected static ?string $model = PurchaseOrder::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowPathRoundedSquare;
+    protected static string|\UnitEnum|null $navigationGroup = 'Etalase';
+
+    protected static ?string $navigationLabel = 'Pembelian';
 
     public static function form(Schema $schema): Schema
     {
